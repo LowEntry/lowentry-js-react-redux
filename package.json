@@ -1,6 +1,6 @@
 {
   "name": "gatsby-plugin-automatic-importer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Automatically generates an import script for all files in the given directories.",
   "author": "Low Entry",
   "license": "MIT",
