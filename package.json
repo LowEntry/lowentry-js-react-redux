@@ -1,0 +1,34 @@
+{
+  "name": "@lowentry/react-redux",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A plugin for React and Redux, to make it easier to create new components and state code.",
+  "author": "Low Entry",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "redux",
+    "saga",
+    "plugin",
+    "utility",
+    "states",
+    "slices"
+  ],
+  "homepage": "https://bitbucket.org/lowentry/plugin_javascript_lered/src",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/lowentry/plugin_javascript_lered/src"
+  },
+  "scripts": {
+    "test": "node --check index.js"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "*",
+    "fast-deep-equal": "^3",
+    "react": "^18",
+    "react-dom": "*",
+    "react-redux": "*",
+    "redux": "^5",
+    "redux-saga": "*"
+  }
+}
