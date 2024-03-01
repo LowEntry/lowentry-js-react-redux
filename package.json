@@ -1,6 +1,7 @@
 {
   "name": "@lowentry/react-redux",
   "version": "0.2.0",
+  "private": false,
   "type": "module",
   "description": "A plugin for React and Redux, to make it easier to create new components and state code.",
   "author": "Low Entry",
