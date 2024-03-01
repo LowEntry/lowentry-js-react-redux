@@ -1,0 +1,36 @@
+{
+  "name": "gatsby-plugin-automatic-importer",
+  "version": "0.1.0",
+  "description": "Automatically generates an import script for all files in the given directories.",
+  "author": "Low Entry",
+  "license": "MIT",
+  "keywords": [
+    "gatsby",
+    "plugin",
+    "generate",
+    "generation",
+    "import",
+    "importer",
+    "export",
+    "exporter",
+    "auto",
+    "automatic",
+    "automatically",
+    "script",
+    "files",
+    "directories",
+    "folders"
+  ],
+  "homepage": "https://bitbucket.org/lowentry/plugin_gatsby_automaticimporter/src",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/lowentry/plugin_gatsby_automaticimporter/src"
+  },
+  "scripts": {
+    "test": "node --check index.js"
+  },
+  "dependencies": {
+    "@babel/core": "^7",
+    "@babel/plugin-syntax-jsx": "*"
+  }
+}
