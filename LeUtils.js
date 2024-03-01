@@ -1,4 +1,4 @@
-import * as FastDeepEqual from 'fast-deep-equal';
+import FastDeepEqual from 'fast-deep-equal';
 import {ISSET, IS_OBJECT, STRING, INT, FLOAT, FLOAT_ANY, INT_LAX} from './LeTypes.js';
 
 

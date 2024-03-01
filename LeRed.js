@@ -1,4 +1,4 @@
-import * as FastDeepEqualReact from 'fast-deep-equal/react';
+import FastDeepEqualReact from 'fast-deep-equal/react';
 import * as RTK from '@reduxjs/toolkit';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
