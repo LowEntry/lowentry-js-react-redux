@@ -5,29 +5,35 @@ const babel = require('@babel/core');
 exports.pluginOptionsSchema = ({Joi}) =>
 {
 	return Joi.object({
-		import:             Joi.array().items(Joi.string())
-			                    .required()
-			                    .default(['./src/resources/'])
-			                    .description(`A list of files and folders, which will be included in the imports/exports generation.`),
-		modify:             Joi.array().items(Joi.string())
-			                    .required()
-			                    .default(['./src/resources/', './src/pages/'])
-			                    .description(`A list of files and folders, which will be updated to automatically import everything that has been exported.`),
-		outputPath:         Joi.string()
-			                    .default('./imports.js')
-			                    .description(`The path of the file that will be generated, this file will contain the import lines.`),
-		previousOutputPaths:Joi.array().items(Joi.string())
-			                    .default([])
-			                    .description(`The previously-used paths of the output files, this is needed to be able to clean them up.`),
-		babel:              Joi.object()
-			                    .default({})
-			                    .description(`The babel options to use when parsing the files (the files need to be parsed to detect what fields they export).`),
-		fileExtensionsJs:   Joi.array().items(Joi.string())
-			                    .default(['js', 'jsx'])
-			                    .description(`The file extensions to consider as JavaScript files.`),
-		fileExtensionsOther:Joi.array().items(Joi.string())
-			                    .default(['css', 'less', 'sass', 'scss'])
-			                    .description(`The file extensions to consider as importable files.`),
+		import:              Joi.array().items(Joi.string())
+			                     .required()
+			                     .default(['./src/resources/'])
+			                     .description(`A list of files and folders, which will be included in the imports/exports generation.`),
+		modify:              Joi.array().items(Joi.string())
+			                     .required()
+			                     .default(['./src/resources/', './src/pages/'])
+			                     .description(`A list of files and folders, which will be updated to automatically import everything that has been exported.`),
+		filter:              Joi.function().minArity(1)
+			                     .default(null)
+			                     .description(`A function that can be used to filter the files and folders that will be included in the imports/exports generation.`),
+		outputName:          Joi.string()
+			                     .default('imports.js')
+			                     .description(`The name of the file that will be generated, this file will contain the import lines.`),
+		previousOutputNames: Joi.array().items(Joi.string())
+			                     .default([])
+			                     .description(`The previously-used names of the output files, this is needed to be able to clean them up.`),
+		babel:               Joi.object()
+			                     .default({})
+			                     .description(`The babel options to use when parsing the files (the files need to be parsed to detect what fields they export).`),
+		fileExtensionsJs:    Joi.array().items(Joi.string())
+			                     .default(['js', 'jsx'])
+			                     .description(`The file extensions to consider as JavaScript files.`),
+		fileExtensionsOther: Joi.array().items(Joi.string())
+			                     .default(['css', 'less', 'sass', 'scss'])
+			                     .description(`The file extensions to consider as importable files.`),
+		fileExtensionsCustom:Joi.function().minArity(1)
+			                     .default(null)
+			                     .description(`A function that can be used to handle custom file extensions. It should return {code, exports}, with code being the import line, and exports being an array of exported fields.`),
 	});
 };
 
@@ -164,25 +170,22 @@ function setFileContentIfFirstLineIsDifferent(file, newContent, oldContent = nul
 }
 
 
-function purgeOutputPath(path)
+function purgeOutputName(name)
 {
-	path = purgePath(path);
-	if(!path.endsWith('.js'))
+	name = purgePath(name);
+	if(!name.endsWith('.js'))
 	{
-		path += '.js';
+		name += '.js';
 	}
-	while(path.startsWith('./'))
-	{
-		path = path.substring(2);
-	}
-	return path;
+	const parts = name.split('/');
+	return parts[parts.length - 1];
 }
 
 
-exports.onPreInit = exports.onPreExtractQueries = ({reporter}, pluginOptions) =>
+exports.onPreInit = exports.onPreExtractQueries = function({reporter}, pluginOptions)
 {
-	const outputPath = purgeOutputPath(pluginOptions['outputPath']);
-	const previousOutputPaths = (pluginOptions['previousOutputPaths']).map(purgeOutputPath);
+	const outputName = purgeOutputName(pluginOptions['outputName']);
+	const previousOutputNames = (pluginOptions['previousOutputNames']).map(purgeOutputName);
 	
 	
 	function getExportedFields(code, codeIsPurged = false)
@@ -190,10 +193,12 @@ exports.onPreInit = exports.onPreExtractQueries = ({reporter}, pluginOptions) =>
 		try
 		{
 			const {ast} = babel.transformSync(codeIsPurged ? code : purgeImportedFieldsCode(code), {
-				...(pluginOptions['babel']),
-				ast:    true,
-				code:   false,
-				plugins:['@babel/plugin-syntax-jsx', ...(pluginOptions['babel'].plugins ?? [])],
+				ast:      true,
+				code:     false,
+				plugins:  ['@babel/plugin-syntax-jsx'],
+				overrides:[
+					pluginOptions['babel'],
+				],
 			});
 			
 			//fs.writeFileSync('./test.json', JSON.stringify(ast?.program?.body ?? [], null, 2));
@@ -219,7 +224,7 @@ exports.onPreInit = exports.onPreExtractQueries = ({reporter}, pluginOptions) =>
 	function purgeImportedFieldsCode(code)
 	{
 		let changed = true;
-		const possibleImportLines = [outputPath, ...previousOutputPaths].map(path => `./${path}';`);
+		const possibleImportLines = [outputName, ...previousOutputNames].map(path => `./${path}';`);
 		while(changed)
 		{
 			changed = false;
@@ -274,17 +279,47 @@ exports.onPreInit = exports.onPreExtractQueries = ({reporter}, pluginOptions) =>
 	let exportedFields = {};
 	
 	
+	function filter(file)
+	{
+		if(typeof pluginOptions['filter'] === 'function')
+		{
+			return !!pluginOptions['filter'](file, ...arguments);
+		}
+		return true;
+	}
+	
 	function importFile(file)
 	{
 		if(isFileOfType(file, pluginOptions['fileExtensionsJs']))
 		{
-			const fields = getExportedFields(fs.readFileSync(file, 'utf8'));
-			importsCode += `import {${fields.join(', ')}} from '${file}';\n`;
-			fields.forEach(field => exportedFields[field] = true);
+			if(filter(file))
+			{
+				const fields = getExportedFields(fs.readFileSync(file, 'utf8'));
+				importsCode += `import {${fields.join(', ')}} from '${file}';\n`;
+				fields.forEach(field => exportedFields[field] = true);
+			}
 		}
 		else if(isFileOfType(file, pluginOptions['fileExtensionsOther']))
 		{
-			importsCode += `import '${file}';\n`;
+			if(filter(file))
+			{
+				importsCode += `import '${file}';\n`;
+			}
+		}
+		else if(typeof pluginOptions['fileExtensionsCustom'] === 'function')
+		{
+			if(filter(file))
+			{
+				const result = pluginOptions['fileExtensionsCustom'](file, ...arguments);
+				if(result?.code)
+				{
+					importsCode += `${result.code}'\n`;
+				}
+				if(result?.exports && Array.isArray(result?.exports))
+				{
+					result.exports.forEach(field => exportedFields[field] = true);
+				}
+			}
 		}
 	}
 	
@@ -297,7 +332,7 @@ exports.onPreInit = exports.onPreExtractQueries = ({reporter}, pluginOptions) =>
 			
 			const fields = getExportedFields(purgedCode, true);
 			const levelsDeep = file.split('/').length - 2;
-			const importedFieldsCode = `import {${Object.keys(exportedFields).filter(value => !fields.includes(value)).join(', ')}} from './${'../'.repeat(levelsDeep)}${outputPath}';\n`;
+			const importedFieldsCode = `import {${Object.keys(exportedFields).filter(value => !fields.includes(value)).join(', ')}} from './${'../'.repeat(levelsDeep)}${outputName}';\n`;
 			
 			const newCode = importedFieldsCode + purgedCode;
 			setFileContentIfFirstLineIsDifferent(file, newCode, code);
@@ -306,6 +341,6 @@ exports.onPreInit = exports.onPreExtractQueries = ({reporter}, pluginOptions) =>
 	
 	
 	pluginOptions['import']?.forEach(path => getAllFiles(purgePath(path)).sort(compareFileOrder).forEach(importFile));
-	setFileContentIfDifferent('./' + outputPath, `${importsCode}\nexport {${Object.keys(exportedFields).join(', ')}};\n`);
+	setFileContentIfDifferent('./' + outputName, `${importsCode}\nexport {${Object.keys(exportedFields).join(', ')}};\n`);
 	pluginOptions['modify']?.forEach(path => getAllFiles(purgePath(path)).sort(compareFileOrder).forEach(modifyFile));
 };
