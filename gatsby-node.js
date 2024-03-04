@@ -102,6 +102,19 @@ function _compareFileOrderString(a, b)
 }
 
 
+function stringIncludesAny(string, substrings)
+{
+	let includes = false;
+	substrings.forEach(substring =>
+	{
+		if(!includes)
+		{
+			includes = string.includes(substring);
+		}
+	});
+	return includes;
+}
+
 function getFirstLine(code)
 {
 	code = code.trimStart();
@@ -206,30 +219,50 @@ exports.onPreInit = exports.onPreExtractQueries = ({reporter}, pluginOptions) =>
 	function purgeImportedFieldsCode(code)
 	{
 		let changed = true;
-		const outputPathFiles = [outputPath, ...previousOutputPaths];
+		const possibleImportLines = [outputPath, ...previousOutputPaths].map(path => `./${path}';`);
 		while(changed)
 		{
 			changed = false;
 			
 			const newCode = code.trimStart();
-			const firstNewline = newCode.indexOf('\n');
-			if(firstNewline >= 0)
+			const firstLine = getFirstLine(newCode);
+			
+			if(stringIncludesAny(firstLine, possibleImportLines))
 			{
-				const firstLine = newCode.substring(0, firstNewline);
-				
-				let includes = false;
-				outputPathFiles.forEach(outputPathFile =>
+				const firstNewline = newCode.indexOf('\n');
+				code = (firstNewline < 0) ? '' : newCode.substring(firstNewline + 1);
+				changed = true;
+				continue;
+			}
+			
+			if(firstLine.startsWith('<<<<<<< HEAD'))
+			{
+				const headStartA = newCode.indexOf('\n') + 1;
+				if(headStartA >= 1)
 				{
-					if(!includes)
+					const headEndA = newCode.indexOf('=======', headStartA);
+					if(headEndA >= 0)
 					{
-						includes = firstLine.includes(`./${outputPathFile}';`);
+						const headA = newCode.substring(headStartA, headEndA).trim();
+						
+						const headStartB = newCode.indexOf('\n', headEndA) + 1;
+						if(headStartB >= 1)
+						{
+							const headEndB = newCode.indexOf('>>>>>>>', headStartB);
+							if(headEndB >= 0)
+							{
+								const headB = newCode.substring(headStartB, headEndB).trim();
+								
+								if(!headA.includes('\n') && !headB.includes('\n') && stringIncludesAny(headA, possibleImportLines) && stringIncludesAny(headB, possibleImportLines))
+								{
+									const headEnd = newCode.indexOf('\n', headEndB) + 1;
+									code = newCode.substring(headEnd);
+									changed = true;
+									continue;
+								}
+							}
+						}
 					}
-				});
-				
-				if(includes)
-				{
-					code = newCode.substring(firstNewline + 1);
-					changed = true;
 				}
 			}
 		}
