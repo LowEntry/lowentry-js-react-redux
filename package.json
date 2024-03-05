@@ -3,7 +3,7 @@
   "version": "0.2.3",
   "private": false,
   "type": "module",
-  "description": "A plugin for React and Redux, to make it easier to create new components and state code.",
+  "description": "Provides utilities for React and Redux.",
   "author": "Low Entry",
   "license": "MIT",
   "keywords": [
@@ -12,6 +12,7 @@
     "saga",
     "plugin",
     "utility",
+    "utilities",
     "states",
     "slices"
   ],
@@ -24,6 +25,7 @@
     "test": "node --check index.js"
   },
   "dependencies": {
+    "@lowentry/utils": "^0",
     "@reduxjs/toolkit": "*",
     "fast-deep-equal": "^3",
     "react": "^18",

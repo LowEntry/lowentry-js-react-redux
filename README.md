@@ -2,6 +2,7 @@
 
 Simplifies the use of Redux in your React project.
 
+
 ## Description
 
 This plugin will add utility functions to make it easier to use Redux in your React project.
@@ -14,10 +15,12 @@ For example, some of the things it does is:
 - it automatically adds support for Redux-Saga to your Redux code, allowing you to call other Redux actions from within a Redux action (as well as the host of other things that Redux-Saga can do, such as obtain the data from selectors, run delays, etc).
 
 All of this basically just:
+
 1. cleans up your code
 2. provides more powerful features to React and Redux
 3. improves consistency
 4. and makes it easier to work with React and Redux in your projects.
+
 
 ### Example
 
@@ -49,42 +52,42 @@ import {LeRed} from '@lowentry/react-redux';
 export const stateTimer = LeRed.createSlice
 ({
     state:
-    {
-        counter:0,
-    },
+        {
+            counter:0,
+        },
     actions:
-    {
-        reset:
-            (state) =>
-            {
-                state.counter = 0;
-            },
-        
-        increase:
-            (state, data) =>
-            {
-                state.counter += (data ?? 1);
-            },
-        
-        decrease:
-            (state, data) =>
-            {
-                state.counter -= (data ?? 1);
-            },
-        
-        waitAndIncrease:
-            function* (data)
-            {
-                const seconds = (data ?? 1);
-                yield LeRed.effects.delay(seconds * 1000);
-                yield LeRed.effects.put(stateTimer.actions.increase(seconds));
-            },
-    },
+        {
+            reset:
+                (state) =>
+                {
+                    state.counter = 0;
+                },
+            
+            increase:
+                (state, data) =>
+                {
+                    state.counter += (data ?? 1);
+                },
+            
+            decrease:
+                (state, data) =>
+                {
+                    state.counter -= (data ?? 1);
+                },
+            
+            waitAndIncrease:
+                function* (data)
+                {
+                    const seconds = (data ?? 1);
+                    yield LeRed.effects.delay(seconds * 1000);
+                    yield LeRed.effects.put(stateTimer.actions.increase(seconds));
+                },
+        },
     selectors:
-    {
-        counter:
-            state => state.counter,
-    },
+        {
+            counter:
+                state => state.counter,
+        },
 });
 ```
 
@@ -107,14 +110,19 @@ export const App = LeRed.memo(({}) =>
     
     return (
         <div>
-            Seconds: {counter}<br/>
-            {(typeof previousCounter !== 'undefined') && (<>Previously: {previousCounter}<br/></>)}
+            Seconds: {counter}
             <br/>
-            <Button color="primary" variant="contained" size="small" onClick={() => dispatch(stateTimer.actions.reset())}>Reset</Button><br/>
+            {(typeof previousCounter !== 'undefined') && (<>Previously: {previousCounter}
+                <br/>
+            </>)}
+            <br/>
+            <Button color="primary" variant="contained" size="small" onClick={() => dispatch(stateTimer.actions.reset())}>Reset</Button>
+            <br/>
         </div>
     );
 });
 ```
+
 
 ## Final words
 

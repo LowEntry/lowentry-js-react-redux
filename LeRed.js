@@ -1,36 +1,16 @@
-import FastDeepEqualReact from 'fast-deep-equal/react';
 import * as RTK from '@reduxjs/toolkit';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as ReactRedux from 'react-redux';
 import * as ReduxSaga from 'redux-saga';
 import * as ReduxSagaEffects from 'redux-saga/effects';
-import {ISSET, ARRAY, STRING} from './LeTypes.js';
-import {LeUtils} from './LeUtils.js';
+import FastDeepEqualReact from 'fast-deep-equal/react';
+import {LeUtils, ISSET, ARRAY, STRING} from '@lowentry/utils';
 
 export const LeRed = (() =>
 {
-	let LeRed = {
-		// for editor auto-complete >>
-		createTheme: () =>
-		             {
-		             },
-		useDispatch: () =>
-		             {
-		             },
-		useDrag:     () =>
-		             {
-		             },
-		useDrop:     () =>
-		             {
-		             },
-		useDragLayer:() =>
-		             {
-		             },
-		effects:     {},
-		// for editor auto-complete <<
-	};
-	LeRed = {};
+	const LeRed = {};
+	
 	
 	try
 	{
