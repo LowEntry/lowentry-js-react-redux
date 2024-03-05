@@ -77,6 +77,7 @@ export const LeRed = (() =>
 		
 		LeRed.effects.interval = function* (callback, intervalMs)
 		{
+			// noinspection JSUnresolvedReference
 			let channel = LeRed.eventChannel((emitter) =>
 			{
 				const interval = setInterval(() =>
@@ -120,6 +121,7 @@ export const LeRed = (() =>
 				{
 					try
 					{
+						// noinspection JSUnresolvedReference
 						if(yield LeRed.effects.cancelled())
 						{
 							channel.close();
@@ -192,9 +194,12 @@ export const LeRed = (() =>
 		{
 			return storeData;
 		}
+		// noinspection JSUnresolvedReference
 		if(ISSET(storeData.slices))
 		{
+			// noinspection JSUnresolvedReference
 			storeData.reducer = storeData.slices;
+			// noinspection JSUnresolvedReference
 			delete storeData.slices;
 		}
 		let sagaListeners = [];
@@ -455,6 +460,7 @@ export const LeRed = (() =>
 						{
 							const sagaListener = function* ()
 							{
+								// noinspection JSUnresolvedReference
 								yield ReduxSagaEffects.takeEvery(reducerAction, function* (action)
 								{
 									let promiseResolve = null;
@@ -782,26 +788,24 @@ export const LeRed = (() =>
 		{
 			let stop = false;
 			
-			let end;
-			
 			const run = () =>
 			{
 				if(stop)
 				{
 					return;
 				}
-				callable();
-				end();
-			};
-			
-			end = () =>
-			{
 				stop = true;
-				window?.removeEventListener('beforeunload', run);
+				if(typeof window !== 'undefined')
+				{
+					window.removeEventListener('beforeunload', run);
+				}
+				callable();
 			};
 			
-			window?.addEventListener('beforeunload', run);
-			
+			if(typeof window !== 'undefined')
+			{
+				window.addEventListener('beforeunload', run);
+			}
 			return run;
 		}, [comparingValues, equalsComparator]);
 	};
