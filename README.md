@@ -31,17 +31,17 @@ import {stateTimer} from '../state/stateTimer.js';
 import {App} from '../components/App.jsx';
 
 export const Head = () => (
-    <title>Home Page</title>
+  <title>Home Page</title>
 );
 
 export default LeRed.memo(({}) =>
 {
-    const store = LeRed.useConfigureStore({slices:{stateTimer}});
-    return (
-        <LeRed.Root store={store}>
-            <App/>
-        </LeRed.Root>
-    );
+  const store = LeRed.useConfigureStore({slices:{stateTimer}});
+  return (
+    <LeRed.Root store={store}>
+      <App/>
+    </LeRed.Root>
+  );
 });
 ```
 
@@ -51,43 +51,43 @@ import {LeRed} from '@lowentry/react-redux';
 
 export const stateTimer = LeRed.createSlice
 ({
-    state:
+  state:
+    {
+      counter:0,
+    },
+  actions:
+    {
+      reset:
+        (state) =>
         {
-            counter:0,
+          state.counter = 0;
         },
-    actions:
+      
+      increase:
+        (state, data) =>
         {
-            reset:
-                (state) =>
-                {
-                    state.counter = 0;
-                },
-            
-            increase:
-                (state, data) =>
-                {
-                    state.counter += (data ?? 1);
-                },
-            
-            decrease:
-                (state, data) =>
-                {
-                    state.counter -= (data ?? 1);
-                },
-            
-            waitAndIncrease:
-                function* (data)
-                {
-                    const seconds = (data ?? 1);
-                    yield LeRed.effects.delay(seconds * 1000);
-                    yield LeRed.effects.put(stateTimer.actions.increase(seconds));
-                },
+          state.counter += (data ?? 1);
         },
-    selectors:
+      
+      decrease:
+        (state, data) =>
         {
-            counter:
-                state => state.counter,
+          state.counter -= (data ?? 1);
         },
+      
+      waitAndIncrease:
+        function* (data)
+        {
+          const seconds = (data ?? 1);
+          yield LeRed.effects.delay(seconds * 1000);
+          yield LeRed.effects.put(stateTimer.actions.increase(seconds));
+        },
+    },
+  selectors:
+    {
+      counter:
+        state => state.counter,
+    },
 });
 ```
 
@@ -99,31 +99,31 @@ import {stateTimer} from '../state/stateTimer.js';
 
 export const App = LeRed.memo(({}) =>
 {
-    const dispatch = LeRed.useDispatch();
-    const counter = LeRed.useSelector(stateTimer.selectors.counter);
-    const previousCounter = LeRed.usePrevious(counter);
-    
-    LeRed.useEffectInterval(() =>
-    {
-        dispatch(stateTimer.actions.increase(1));
-    }, [], 1000);
-    
-    return (
-        <div>
-            Seconds: {counter}
-            <br/>
-            {(typeof previousCounter !== 'undefined') && (<>Previously: {previousCounter}
-                <br/>
-            </>)}
-            <br/>
-            <Button color="primary" variant="contained" size="small" onClick={() => dispatch(stateTimer.actions.reset())}>Reset</Button>
-            <br/>
-        </div>
-    );
+  const dispatch = LeRed.useDispatch();
+  const counter = LeRed.useSelector(stateTimer.selectors.counter);
+  const previousCounter = LeRed.usePrevious(counter);
+  
+  LeRed.useEffectInterval(() =>
+  {
+    dispatch(stateTimer.actions.increase(1));
+  }, [], 1000);
+  
+  return (
+    <div>
+      Seconds: {counter}
+      <br/>
+      {(typeof previousCounter !== 'undefined') && (<>Previously: {previousCounter}
+        <br/>
+      </>)}
+      <br/>
+      <Button color="primary" variant="contained" size="small" onClick={() => dispatch(stateTimer.actions.reset())}>Reset</Button>
+      <br/>
+    </div>
+  );
 });
 ```
 
 
 ## Final words
 
-I hope this plugin will be useful to you. If you have any questions or suggestions, feel free to contact me at [LowEntry.com](https://lowentry.com/).
+I hope this plugin will be useful to you. If you have any questions or suggestions, please feel free to get in touch at [LowEntry.com](https://lowentry.com/).
