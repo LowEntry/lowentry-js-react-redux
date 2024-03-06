@@ -1,6 +1,6 @@
 {
   "name": "@lowentry/react-redux",
-  "version": "0.2.5",
+  "version": "1.0.0",
   "private": false,
   "type": "module",
   "description": "Provides utilities for React and Redux.",
@@ -25,7 +25,7 @@
     "test": "node --check index.js"
   },
   "dependencies": {
-    "@lowentry/utils": "^0",
+    "@lowentry/utils": "^1",
     "@reduxjs/toolkit": "*",
     "fast-deep-equal": "^3",
     "react": "^18",
