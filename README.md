@@ -110,14 +110,11 @@ export const App = LeRed.memo(({}) =>
   
   return (
     <div>
-      Seconds: {counter}
-      <br/>
-      {(typeof previousCounter !== 'undefined') && (<>Previously: {previousCounter}
-        <br/>
-      </>)}
-      <br/>
+      <p>
+        <div>Seconds: {counter}</div>
+        {(typeof previousCounter !== 'undefined') && (<div>Previously: {previousCounter}</div>)}
+      </p>
       <Button color="primary" variant="contained" size="small" onClick={() => dispatch(stateTimer.actions.reset())}>Reset</Button>
-      <br/>
     </div>
   );
 });
