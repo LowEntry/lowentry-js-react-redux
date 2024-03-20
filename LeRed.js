@@ -14,7 +14,7 @@ export const LeRed = (() =>
 	
 	try
 	{
-		const set = (value, key, ignoreOverrides = false) =>
+		const set = (key, value, ignoreOverrides = false) =>
 		{
 			const keyFirstChar = key.charAt(0);
 			if(keyFirstChar === keyFirstChar.toLowerCase() && (keyFirstChar !== keyFirstChar.toUpperCase()))
@@ -43,11 +43,11 @@ export const LeRed = (() =>
 		{
 			LeUtils.each(obj, (value, key) =>
 			{
-				set(value, key, ignoreOverrides);
+				set(key, value, ignoreOverrides);
 			}, optionalSkipHasOwnPropertyCheck);
 		};
 		
-		LeRed.set = (value, key) => set(value, key, true);
+		LeRed.set = (key, value) => set(key, value, true);
 		LeRed.setAll = (obj, optionalSkipHasOwnPropertyCheck = true) => setAll(obj, true, optionalSkipHasOwnPropertyCheck);
 		
 		setAll(ReactDOM);
@@ -824,6 +824,17 @@ export const LeRed = (() =>
 		comparingValues = comparingValues.map(value => useCompareMemoize(value, equalsComparator));
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		return React.useMemo(callable, comparingValues);
+	};
+	
+	LeRed.useCallback = (callable, comparingValues, equalsComparator) =>
+	{
+		console.log('LeRed callback');
+		equalsComparator = fixEqualsComparator(equalsComparator, 'LeRed.useCallback() was given an invalid comparator:');
+		comparingValues = ARRAY(comparingValues);
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		comparingValues = comparingValues.map(value => useCompareMemoize(value, equalsComparator));
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		return React.useCallback(callable, comparingValues);
 	};
 	
 	LeRed.usePrevious = (value, initialValue) =>
