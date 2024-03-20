@@ -828,7 +828,6 @@ export const LeRed = (() =>
 	
 	LeRed.useCallback = (callable, comparingValues, equalsComparator) =>
 	{
-		console.log('LeRed callback');
 		equalsComparator = fixEqualsComparator(equalsComparator, 'LeRed.useCallback() was given an invalid comparator:');
 		comparingValues = ARRAY(comparingValues);
 		// eslint-disable-next-line react-hooks/rules-of-hooks
