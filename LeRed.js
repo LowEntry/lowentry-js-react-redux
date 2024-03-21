@@ -168,11 +168,6 @@ export const LeRed = (() =>
 	};
 	
 	
-	LeRed.Root = LeRed.memo(({store, children}) =>
-	{
-		return React.createElement(ReactRedux.Provider, {store}, children);
-	});
-	
 	LeRed.createRootElement = (elementClass, storeData) =>
 	{
 		if(ISSET(storeData))
@@ -602,7 +597,7 @@ export const LeRed = (() =>
 				{
 					try
 					{
-						const selector = getter.apply(window, [params]);
+						const selector = getter(...params);
 						return (state) =>
 						{
 							try
@@ -955,6 +950,18 @@ export const LeRed = (() =>
 			});
 		};
 	};
+	
+	
+	LeRed.Root = LeRed.memo(({store, children}) =>
+	{
+		if(ISSET(store))
+		{
+			store = LeRed.configureStore(store);
+			return React.createElement(ReactRedux.Provider, {store}, children);
+		}
+		return React.createElement(ReactRedux.Provider, {}, children);
+	});
+	
 	
 	if(typeof Proxy === 'undefined')
 	{
