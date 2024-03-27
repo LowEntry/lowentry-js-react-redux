@@ -1,0 +1,27 @@
+name: on push to main
+
+on:
+  push:
+    branches: [ master ]
+
+concurrency:
+  group: ${{ github.event_name }}
+
+jobs:
+  deploy:
+    name: "Increase version number and deploy to NPM"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - run: npm ci
+      - run: npm test
+      - run: npm version patch -m "Upgrade to %s [skip ci]"
+      - run: git push && git push --tags
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
