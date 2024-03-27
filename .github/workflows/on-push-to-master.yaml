@@ -1,4 +1,4 @@
-name: on push to main
+name: on push to master
 
 on:
   push:
@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: "Increase version number and deploy"
+    name: "Increase version and deploy"
     runs-on: ubuntu-latest
     permissions:
       contents: write
