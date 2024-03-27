@@ -24,7 +24,7 @@ jobs:
       - run: git config --global user.name "github-actions[bot]"
       - run: git config --global user.email "github-actions[bot]@users.noreply.github.com"
       - run: npm version patch -m "Upgrade to %s [skip ci]"
-      - run: git push && git push --tags
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: git push && git push --tags
