@@ -19,7 +19,7 @@
   "homepage": "https://github.com/patrickvane/lowentry-react-redux",
   "repository": {
     "type": "git",
-    "url": "https://github.com/patrickvane/lowentry-react-redux.git"
+    "url": "git+https://github.com/patrickvane/lowentry-react-redux.git"
   },
   "scripts": {
     "test": "node --check index.js"
