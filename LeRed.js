@@ -959,7 +959,7 @@ export const LeRed = (() =>
 			store = LeRed.configureStore(store);
 			return React.createElement(ReactRedux.Provider, {store}, children);
 		}
-		return React.createElement(ReactRedux.Provider, {}, children);
+		return children;
 	});
 	
 	
