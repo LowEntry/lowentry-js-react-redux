@@ -679,7 +679,7 @@ export const LeRed = (() =>
 	
 	LeRed.useConfigureStore = (storeData) =>
 	{
-		return React.useMemo(() => LeRed.configureStore(storeData), [storeData]);
+		return LeRed.useMemo(() => LeRed.configureStore(storeData), [storeData]);
 	};
 	
 	LeRed.useSelector = (selector, equalsComparator) =>
