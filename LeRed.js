@@ -951,6 +951,40 @@ export const LeRed = (() =>
 		};
 	};
 	
+	LeRed.useTriggerable = (event) =>
+	{
+		const [[value, uniqueId], setValue] = LeRed.useState([null, LeUtils.uniqueId()]);
+		
+		LeRed.useEffect(() =>
+		{
+			if(typeof window === 'undefined')
+			{
+				return;
+			}
+			
+			const callback = (e) =>
+			{
+				setValue([e?.detail, LeUtils.uniqueId()]);
+			};
+			
+			const eventName = 'lowentrytriggerable_' + event;
+			window.addEventListener(eventName, callback);
+			return () => window.removeEventListener(eventName, callback);
+		}, []);
+		
+		return value;
+	};
+	
+	LeRed.trigger = (event, value) =>
+	{
+		if(typeof window === 'undefined')
+		{
+			return;
+		}
+		const eventName = 'lowentrytriggerable_' + event;
+		window.dispatchEvent(new CustomEvent(eventName, {detail:value}));
+	};
+	
 	
 	LeRed.Root = LeRed.memo(({store, children}) =>
 	{
