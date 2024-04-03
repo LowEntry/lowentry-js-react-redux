@@ -781,27 +781,54 @@ export const LeRed = (() =>
 	{
 		return LeRed.useEffect(() =>
 		{
-			let stop = false;
-			
 			const run = () =>
 			{
-				if(stop)
-				{
-					return;
-				}
-				stop = true;
-				if(typeof window !== 'undefined')
-				{
-					window.removeEventListener('beforeunload', run);
-				}
 				callable();
 			};
 			
 			if(typeof window !== 'undefined')
 			{
-				window.addEventListener('beforeunload', run);
+				window.addEventListener('beforeunload', run, {capture:true});
 			}
-			return run;
+			return () =>
+			{
+				if(typeof window !== 'undefined')
+				{
+					window.removeEventListener('beforeunload', run, {capture:true});
+				}
+				run();
+			};
+		}, [comparingValues, equalsComparator]);
+	};
+	
+	LeRed.useEffectPageFocusLost = (callable, comparingValues, equalsComparator) =>
+	{
+		const events = ['pagehide', 'freeze', 'blur', 'visibilitychange'];
+		return LeRed.useEffect(() =>
+		{
+			if((typeof window === 'undefined'))
+			{
+				return;
+			}
+			
+			const run = () =>
+			{
+				if(typeof document === 'undefined')
+				{
+					return;
+				}
+				if((document.visibilityState !== 'hidden') && document.hasFocus())
+				{
+					return;
+				}
+				callable();
+			};
+			
+			events.forEach(type => window.addEventListener(type, run, {capture:true}));
+			return () =>
+			{
+				events.forEach(type => window.removeEventListener(type, run, {capture:true}));
+			};
 		}, [comparingValues, equalsComparator]);
 	};
 	
