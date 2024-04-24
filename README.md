@@ -5,7 +5,7 @@ Simplifies the use of Redux in your React project.
 
 ## Description
 
-This plugin will add utility functions to make it easier to use Redux in your React project.
+This plugin adds utility functions to make it easier to use React and Redux in your project.
 
 For example, some of the things it does is:
 
