@@ -16,10 +16,10 @@
     "states",
     "slices"
   ],
-  "homepage": "https://github.com/LowEntry/lowentry-react-redux",
+  "homepage": "https://github.com/LowEntry/lowentry-js-react-redux",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LowEntry/lowentry-react-redux.git"
+    "url": "git+https://github.com/LowEntry/lowentry-js-react-redux.git"
   },
   "scripts": {
     "test": "node --check index.js"
