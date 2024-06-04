@@ -5,7 +5,7 @@ import * as ReactRedux from 'react-redux';
 import * as ReduxSaga from 'redux-saga';
 import * as ReduxSagaEffects from 'redux-saga/effects';
 import FastDeepEqualReact from 'fast-deep-equal/react';
-import {LeUtils, ISSET, ARRAY, STRING} from '@lowentry/utils';
+import {LeUtils, ISSET, ARRAY, STRING, INT_LAX} from '@lowentry/utils';
 
 export const LeRed = (() =>
 {
@@ -77,7 +77,6 @@ export const LeRed = (() =>
 		
 		LeRed.effects.interval = function* (callback, intervalMs)
 		{
-			// noinspection JSUnresolvedReference
 			let channel = LeRed.eventChannel((emitter) =>
 			{
 				const interval = setInterval(() =>
@@ -121,7 +120,6 @@ export const LeRed = (() =>
 				{
 					try
 					{
-						// noinspection JSUnresolvedReference
 						if(yield LeRed.effects.cancelled())
 						{
 							channel.close();
@@ -168,33 +166,15 @@ export const LeRed = (() =>
 	};
 	
 	
-	LeRed.createRootElement = (elementClass, storeData) =>
-	{
-		if(ISSET(storeData))
-		{
-			storeData = LeRed.configureStore(storeData);
-			return React.createElement(ReactRedux.Provider, {store:storeData}, React.createElement(elementClass));
-		}
-		return React.createElement(elementClass);
-	};
-	
-	LeRed.createElement = (elementClass, props = null, ...children) =>
-	{
-		return React.createElement(elementClass, props, ...children);
-	};
-	
 	LeRed.configureStore = (storeData) =>
 	{
 		if(storeData.__lowentry_store__ === true)
 		{
 			return storeData;
 		}
-		// noinspection JSUnresolvedReference
 		if(ISSET(storeData.slices))
 		{
-			// noinspection JSUnresolvedReference
 			storeData.reducer = storeData.slices;
-			// noinspection JSUnresolvedReference
 			delete storeData.slices;
 		}
 		let sagaListeners = [];
@@ -455,7 +435,6 @@ export const LeRed = (() =>
 						{
 							const sagaListener = function* ()
 							{
-								// noinspection JSUnresolvedReference
 								yield ReduxSagaEffects.takeEvery(reducerAction, function* (action)
 								{
 									let promiseResolve = null;
@@ -1012,15 +991,207 @@ export const LeRed = (() =>
 		window.dispatchEvent(new CustomEvent(eventName, {detail:value}));
 	};
 	
+	/**
+	 * A useState() hook that automatically resets to the defaultValue after the given duration.
+	 *
+	 * Example:
+	 *
+	 * ```js
+	 * const [value, setValue] = LeRed.useTempState(true, 2000);
+	 * // somewhere in your code:
+	 * setValue(false); // value is now false, after 2 seconds it will be reset to true
+	 * ```
+	 *
+	 * Repeated calls cause the timer to reset, meaning each set value will always remain for the full given duration.
+	 */
+	LeRed.useTempState = (defaultValue, duration) =>
+	{
+		const [value, setValue] = LeRed.useState(defaultValue);
+		const timeoutHandle = LeRed.useRef(null);
+		
+		return [value, (newValue) =>
+		{
+			if(timeoutHandle.current)
+			{
+				clearTimeout(timeoutHandle.current);
+			}
+			setValue(newValue);
+			timeoutHandle.current = setTimeout(() =>
+			{
+				timeoutHandle.current = null;
+				setValue(defaultValue);
+			}, duration);
+		}];
+	};
 	
-	LeRed.Root = LeRed.memo(({store, children}) =>
+	/**
+	 * Allows you to listen to the browser history events (forwards, backwards) and execute a callback on those events.
+	 *
+	 * You pass 2 functions to it (the callbacks), and it also provides 2 functions (for manually going forwards and backwards).
+	 *
+	 * Usage:
+	 *
+	 * ```js
+	 * const [goForwards, goBackwards] = LeRed.useHistory(() => console.log('has gone forwards'), () => console.log('has gone backwards'));
+	 * ```
+	 */
+	LeRed.useHistory = (() =>
+	{
+		let historyStateListeners = [];
+		
+		if(typeof window !== 'undefined')
+		{
+			window.addEventListener('popstate', () =>
+			{
+				historyStateListeners.pop()?.callback();
+			});
+		}
+		
+		const addListener = (callback) =>
+		{
+			const id = LeUtils.uniqueId();
+			historyStateListeners.push({id, callback});
+			return id;
+		};
+		
+		const removeListener = (id) =>
+		{
+			if(!id)
+			{
+				return;
+			}
+			historyStateListeners = historyStateListeners.filter(listener => (listener.id !== id));
+		};
+		
+		return (onForward, onBack) =>
+		{
+			const remaining = LeRed.useRef(0);
+			const id = LeRed.useRef(null);
+			
+			const goBack = LeRed.useCallback(() =>
+			{
+				if(remaining.current <= 0)
+				{
+					return;
+				}
+				remaining.current--;
+				if(remaining.current === 0)
+				{
+					if(id.current)
+					{
+						removeListener(id.current);
+					}
+					id.current = null;
+				}
+				onBack();
+			}, [onBack]);
+			
+			return [
+				() => /** do **/
+				{
+					LeRed.navigate('#');
+					remaining.current++;
+					if(remaining.current === 1)
+					{
+						if(id.current)
+						{
+							removeListener(id.current);
+						}
+						id.current = addListener(goBack);
+					}
+					onForward();
+				},
+				
+				() => /** undo **/
+				{
+					if(remaining.current > 0)
+					{
+						LeRed.navigate(-1);
+					}
+				},
+			];
+		};
+	})();
+	
+	/**
+	 * Similar to {@link LeRed.useHistory}, but this is specifically for toggling a boolean state between true and false. For example, for a modal, which you'd like to be closed when the user goes back in history.
+	 *
+	 * Example:
+	 *
+	 * ```js
+	 * const [isModalOpen, openModal, closeModal] = LeRed.useHistoryState(false); // you'd open it programmatically using openModal(), afterwards, if the user goes back in history, it will close again
+	 * ```
+	 *
+	 * or, if you'd like it to be true by default:
+	 *
+	 * ```js
+	 * const [isModalOpen, openModal, closeModal] = LeRed.useHistoryState(true); // you'd close it programmatically using closeModal(), afterwards, if the user goes back in history, it will open again
+	 * ```
+	 */
+	LeRed.useHistoryState = (initialState) =>
+	{
+		const [state, setState] = LeRed.useState(!!initialState);
+		const [forwards, backwards] = LeRed.useHistory(() => setState(!initialState), () => setState(!!initialState));
+		if(!!initialState)
+		{
+			return [state, backwards, forwards];
+		}
+		return [state, forwards, backwards];
+	};
+	
+	
+	LeRed.Root = LeRed.memo(({store, children, ...other}) =>
 	{
 		if(ISSET(store))
 		{
 			store = LeRed.configureStore(store);
-			return React.createElement(ReactRedux.Provider, {store}, children);
+			return (<ReactRedux.Provider store={store} {...other}>{children}</ReactRedux.Provider>);
 		}
 		return children;
+	});
+	
+	LeRed.PreloadComponent = (load) =>
+	{
+		if(typeof window !== 'undefined')
+		{
+			const promise = load(); // start loading already, before it's being rendered in React
+			return () => promise;
+		}
+		return load;
+	};
+	
+	LeRed.LoadComponent = LeRed.memo(({loading, load, ...other}) =>
+	{
+		const [Component, setComponent] = LeRed.useState(loading ?? null);
+		
+		LeRed.useEffect(() =>
+		{
+			(async () =>
+			{
+				const LoadedComponent = (typeof load === 'function') ? await load() : await load;
+				if(!LoadedComponent)
+				{
+					setComponent(null);
+					return;
+				}
+				setComponent(<LoadedComponent {...other}/>);
+			})();
+		}, []);
+		
+		return Component;
+	});
+	
+	LeRed.InitiallyInvisible = LeRed.memo(({frames, transition, style, children, opacityKey, ...other}) =>
+	{
+		const [opacity, setOpacity] = LeRed.useState(0);
+		
+		LeRed.useEffect(() =>
+		{
+			setOpacity(0);
+			return LeUtils.setAnimationFrameTimeout(() => setOpacity(1), Math.max((opacityKey ? 2 : 0), INT_LAX(frames))).remove;
+		}, [opacityKey]);
+		
+		return (<div style={{width:'100%', height:'100%', opacity, transition:(((opacity > 0) && transition) ? ('opacity ' + transition) : 'none'), ...(style ?? {})}} {...other}>{children}</div>);
 	});
 	
 	
