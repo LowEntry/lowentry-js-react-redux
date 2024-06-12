@@ -1145,7 +1145,7 @@ export const LeRed = (() =>
 		if(ISSET(store))
 		{
 			store = LeRed.configureStore(store);
-			return (<ReactRedux.Provider store={store} {...other}>{children}</ReactRedux.Provider>);
+			return LeRed.createElement(ReactRedux.Provider, {store, ...other}, children);
 		}
 		return children;
 	});
@@ -1174,7 +1174,7 @@ export const LeRed = (() =>
 					setComponent(null);
 					return;
 				}
-				setComponent(<LoadedComponent {...other}/>);
+				setComponent(LeRed.createElement(LoadedComponent, other));
 			})();
 		}, []);
 		
@@ -1191,7 +1191,7 @@ export const LeRed = (() =>
 			return LeUtils.setAnimationFrameTimeout(() => setOpacity(1), Math.max((opacityKey ? 2 : 0), INT_LAX(frames))).remove;
 		}, [opacityKey]);
 		
-		return (<div style={{width:'100%', height:'100%', opacity, transition:(((opacity > 0) && transition) ? ('opacity ' + transition) : 'none'), ...(style ?? {})}} {...other}>{children}</div>);
+		return LeRed.createElement('div', {style:{width:'100%', height:'100%', opacity, transition:(((opacity > 0) && transition) ? ('opacity ' + transition) : 'none'), ...(style ?? {}), ...other}, children});
 	});
 	
 	
