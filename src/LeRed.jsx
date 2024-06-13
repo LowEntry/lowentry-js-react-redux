@@ -52,7 +52,7 @@ export const LeRed = (() =>
 		
 		setAll(ReactDOM);
 		setAll(ReduxSaga);
-		setAll({effects:ReduxSagaEffects});
+		setAll({effects:{...ReduxSagaEffects}});
 		setAll(RTK);
 		setAll(React);
 		setAll(ReactRedux);
