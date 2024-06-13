@@ -1,6 +1,6 @@
 {
   "name": "@lowentry/react-redux",
-  "version": "1.6.9",
+  "version": "1.6.10",
   "private": false,
   "type": "module",
   "description": "Provides utilities for React and Redux.",
