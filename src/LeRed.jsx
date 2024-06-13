@@ -5,7 +5,7 @@ import * as ReactRedux from 'react-redux';
 import * as ReduxSaga from 'redux-saga';
 import * as ReduxSagaEffects from 'redux-saga/effects';
 import FastDeepEqualReact from 'fast-deep-equal/react';
-import {LeUtils, ISSET, ARRAY, STRING, INT_LAX} from '@lowentry/utils';
+import {LeUtils, ISSET, ARRAY, STRING} from '@lowentry/utils';
 
 export const LeRed = (() =>
 {
@@ -1145,7 +1145,7 @@ export const LeRed = (() =>
 		if(ISSET(store))
 		{
 			store = LeRed.configureStore(store);
-			return LeRed.createElement(ReactRedux.Provider, {store, ...other}, children);
+			return (<ReactRedux.Provider store={store} {...other}>{children}</ReactRedux.Provider>);
 		}
 		return children;
 	});
@@ -1174,24 +1174,11 @@ export const LeRed = (() =>
 					setComponent(null);
 					return;
 				}
-				setComponent(LeRed.createElement(LoadedComponent, other));
+				setComponent(<LoadedComponent {...other}/>);
 			})();
 		}, []);
 		
 		return Component;
-	});
-	
-	LeRed.InitiallyInvisible = LeRed.memo(({frames, transition, style, children, opacityKey, ...other}) =>
-	{
-		const [opacity, setOpacity] = LeRed.useState(0);
-		
-		LeRed.useEffect(() =>
-		{
-			setOpacity(0);
-			return LeUtils.setAnimationFrameTimeout(() => setOpacity(1), Math.max((opacityKey ? 2 : 0), INT_LAX(frames))).remove;
-		}, [opacityKey]);
-		
-		return LeRed.createElement('div', {style:{width:'100%', height:'100%', opacity, transition:(((opacity > 0) && transition) ? ('opacity ' + transition) : 'none'), ...(style ?? {}), ...other}, children});
 	});
 	
 	
