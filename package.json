@@ -25,10 +25,13 @@
     "prepublishOnly": "rm -r src && mv dist/* ./ && rm -r dist",
     "test": ""
   },
+  "dependencies": {
+    "fast-deep-equal": "^3"
+  },
   "peerDependencies": {
+    "@babel/runtime": "*",
     "@lowentry/utils": "^1",
     "@reduxjs/toolkit": "*",
-    "fast-deep-equal": "^3",
     "react": "^18",
     "react-dom": "*",
     "react-redux": "*",
