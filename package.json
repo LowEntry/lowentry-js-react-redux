@@ -26,17 +26,17 @@
     "test": ""
   },
   "dependencies": {
-    "@lowentry/utils": "^1",
-    "@reduxjs/toolkit": "*",
-    "fast-deep-equal": "^3",
-    "react-redux": "*",
-    "redux": "^5",
-    "redux-saga": "*"
+    "fast-deep-equal": "^3"
   },
   "peerDependencies": {
     "@babel/runtime": "*",
+    "@lowentry/utils": "^1",
+    "@reduxjs/toolkit": "*",
     "react": "^18",
-    "react-dom": "*"
+    "react-dom": "*",
+    "react-redux": "*",
+    "redux": "^5",
+    "redux-saga": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
