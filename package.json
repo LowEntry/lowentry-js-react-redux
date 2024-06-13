@@ -26,12 +26,21 @@
     "test": ""
   },
   "dependencies": {
-    "fast-deep-equal": "^3"
+    "@babel/runtime": "*",
+    "@lowentry/utils": "^1",
+    "@reduxjs/toolkit": "*",
+    "fast-deep-equal": "^3",
+    "react": "^18",
+    "react-dom": "*",
+    "react-redux": "*",
+    "redux": "^5",
+    "redux-saga": "*"
   },
   "peerDependencies": {
     "@babel/runtime": "*",
     "@lowentry/utils": "^1",
     "@reduxjs/toolkit": "*",
+    "fast-deep-equal": "^3",
     "react": "^18",
     "react-dom": "*",
     "react-redux": "*",
