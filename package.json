@@ -3,6 +3,7 @@
   "version": "1.6.10",
   "private": false,
   "type": "module",
+  "main": "./index.js",
   "description": "Provides utilities for React and Redux.",
   "author": "Low Entry",
   "license": "MIT",
