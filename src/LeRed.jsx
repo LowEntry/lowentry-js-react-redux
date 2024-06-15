@@ -5,7 +5,7 @@ import * as ReactRedux from 'react-redux';
 import * as ReduxSaga from 'redux-saga';
 import * as ReduxSagaEffects from 'redux-saga/effects';
 import FastDeepEqualReact from 'fast-deep-equal/react';
-import {LeUtils, ISSET, ARRAY, STRING} from '@lowentry/utils';
+import {LeUtils, ISSET, ARRAY, STRING, INT_LAX_ANY} from '@lowentry/utils';
 
 export const LeRed = (() =>
 {
@@ -1142,6 +1142,41 @@ export const LeRed = (() =>
 			return [state, backwards, forwards];
 		}
 		return [state, forwards, backwards];
+	};
+	
+	/**
+	 * Allows you to easily create an <pre><img></pre> url and onError handler that will automatically retry loading the image if it fails.
+	 */
+	LeRed.useRetryingImageUrl = (url, options) =>
+	{
+		url = STRING(url);
+		const urlHasQ = url.includes('?');
+		
+		const [imageUrl, setImageUrl] = LeRed.useState(url);
+		const retries = LeRed.useRef(0);
+		const timeout = LeRed.useRef({remove:() => undefined});
+		
+		LeRed.useEffect(() =>
+		{
+			timeout.current.remove();
+			retries.current = 0;
+			setImageUrl(url);
+		}, [url]);
+		
+		const onImageLoadError = LeRed.useCallback(() =>
+		{
+			if(retries.current < INT_LAX_ANY(options?.retries, 30))
+			{
+				const defaultDelay = 100 + (50 * retries.current);
+				timeout.current.remove();
+				timeout.current = LeUtils.setTimeout(() =>
+				{
+					setImageUrl(url + (urlHasQ ? '&' : '?') + (options?.queryParam || 'lowentryretryingimgversion') + '=' + (retries.current++));
+				}, (typeof options?.delay === 'function') ? INT_LAX_ANY(options?.delay(retries.current), defaultDelay) : (INT_LAX_ANY(options?.delay, defaultDelay)));
+			}
+		}, [url]);
+		
+		return [imageUrl, onImageLoadError];
 	};
 	
 	
