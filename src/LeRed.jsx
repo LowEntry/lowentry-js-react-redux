@@ -855,7 +855,7 @@ export const LeRed = (() =>
 		{
 			if(!hasFont)
 			{
-				if(!ISSET(document?.fonts?.check))
+				if((typeof window === 'undefined') || !ISSET(document?.fonts?.check))
 				{
 					setHasFont(true);
 					return;
@@ -894,6 +894,11 @@ export const LeRed = (() =>
 	{
 		return LeRed.useEffect(() =>
 		{
+			if((typeof window === 'undefined') || !document)
+			{
+				return;
+			}
+			
 			const script = document.createElement('script');
 			script.type = 'text/javascript';
 			script.src = url;
