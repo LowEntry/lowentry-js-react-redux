@@ -1176,6 +1176,14 @@ export const LeRed = (() =>
 			}
 		}, [url]);
 		
+		const onImageLoadErrorIgnored = LeRed.useCallback(() =>
+		{
+		}, []);
+		
+		if(!url)
+		{
+			return [url, onImageLoadErrorIgnored];
+		}
 		return [imageUrl, onImageLoadError];
 	};
 	
