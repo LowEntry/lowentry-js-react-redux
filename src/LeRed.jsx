@@ -1203,12 +1203,12 @@ export const LeRed = (() =>
 			setError(null);
 			
 			return LeUtils.fetch(url, {retries:3, ...(options ?? {})})
-				.then(response =>
+				.then(async response =>
 				{
-					const json = response.json();
+					const json = await response.json();
 					if(typeof options?.verify === 'function')
 					{
-						options.verify(json, response);
+						await options.verify(json, response);
 					}
 					return json;
 				})
