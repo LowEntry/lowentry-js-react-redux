@@ -1187,6 +1187,49 @@ export const LeRed = (() =>
 		return [imageUrl, onImageLoadError];
 	};
 	
+	/**
+	 * Allows you to easily obtain external JSON data.
+	 */
+	LeRed.useExternalJson = (url, options) =>
+	{
+		const [data, setData] = LeRed.useState(null);
+		const [loading, setLoading] = LeRed.useState(true);
+		const [error, setError] = LeRed.useState(null);
+		
+		LeRed.useEffect(() =>
+		{
+			setLoading(true);
+			setData(null);
+			setError(null);
+			
+			return LeUtils.fetch(url, {retries:3, ...(options ?? {})})
+				.then(response =>
+				{
+					const json = response.json();
+					if(typeof options?.verify === 'function')
+					{
+						options.verify(json, response);
+					}
+					return json;
+				})
+				.then(data =>
+				{
+					setData(data);
+					setError(null);
+					setLoading(false);
+				})
+				.catch(error =>
+				{
+					setData(null);
+					setError(LeUtils.purgeErrorMessage(error));
+					setLoading(false);
+				})
+				.remove;
+		}, [url, options]);
+		
+		return [data, loading, error];
+	};
+	
 	
 	LeRed.Root = LeRed.memo(({store, children, ...other}) =>
 	{
