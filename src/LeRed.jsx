@@ -1188,10 +1188,11 @@ export const LeRed = (() =>
 	};
 	
 	/**
-	 * Allows you to easily obtain external JSON data.
+	 * Allows you to easily obtain external data.
 	 */
-	LeRed.useExternalJson = (url, options) =>
+	LeRed.useExternal = (url, options, hardcodedResponseFunction) =>
 	{
+		const paramsRef = LeRed.useRef({url, options});
 		const [data, setData] = LeRed.useState(null);
 		const [loading, setLoading] = LeRed.useState(true);
 		const [error, setError] = LeRed.useState(null);
@@ -1205,29 +1206,83 @@ export const LeRed = (() =>
 			return LeUtils.fetch(url, {retries:3, ...(options ?? {})})
 				.then(async response =>
 				{
-					const json = await response.json();
+					const data = await hardcodedResponseFunction(response);
 					if(typeof options?.verify === 'function')
 					{
-						await options.verify(json, response);
+						await options.verify(data, response);
 					}
-					return json;
+					return data;
 				})
 				.then(data =>
 				{
+					paramsRef.current = {url, options};
+					setLoading(false);
 					setData(data);
 					setError(null);
-					setLoading(false);
 				})
 				.catch(error =>
 				{
+					paramsRef.current = {url, options};
+					setLoading(false);
 					setData(null);
 					setError(LeUtils.purgeErrorMessage(error));
-					setLoading(false);
 				})
 				.remove;
 		}, [url, options]);
 		
+		if(!LeUtils.equals(paramsRef.current, {url, options}))
+		{
+			return [null, true, null];
+		}
 		return [data, loading, error];
+	};
+	
+	/**
+	 * Allows you to easily obtain external JSON data.
+	 */
+	LeRed.useExternalJson = (url, options) =>
+	{
+		return LeRed.useExternal(url, options, response => response.json());
+	};
+	
+	/**
+	 * Allows you to easily obtain external Blob data.
+	 */
+	LeRed.useExternalBlob = (url, options) =>
+	{
+		return LeRed.useExternal(url, options, response => response.blob());
+	};
+	
+	/**
+	 * Allows you to easily obtain external Uint8Array data.
+	 */
+	LeRed.useExternalBytes = (url, options) =>
+	{
+		return LeRed.useExternal(url, options, response => response.bytes());
+	};
+	
+	/**
+	 * Allows you to easily obtain external ArrayBuffer data.
+	 */
+	LeRed.useExternalArrayBuffer = (url, options) =>
+	{
+		return LeRed.useExternal(url, options, response => response.arrayBuffer());
+	};
+	
+	/**
+	 * Allows you to easily obtain external string data.
+	 */
+	LeRed.useExternalString = (url, options) =>
+	{
+		return LeRed.useExternal(url, options, response => response.text());
+	};
+	
+	/**
+	 * Allows you to easily obtain external form data.
+	 */
+	LeRed.useExternalFormData = (url, options) =>
+	{
+		return LeRed.useExternal(url, options, response => response.formData());
 	};
 	
 	
