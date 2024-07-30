@@ -5,7 +5,7 @@ import * as ReactRedux from 'react-redux';
 import * as ReduxSaga from 'redux-saga';
 import * as ReduxSagaEffects from 'redux-saga/effects';
 import FastDeepEqualReact from 'fast-deep-equal/react';
-import {LeUtils, ISSET, ARRAY, STRING, INT_LAX_ANY} from '@lowentry/utils';
+import {LeUtils, ISSET, ARRAY, STRING, INT_LAX_ANY, IS_OBJECT, IS_ARRAY} from '@lowentry/utils';
 
 export const LeRed = (() =>
 {
@@ -1203,15 +1203,56 @@ export const LeRed = (() =>
 			setData(null);
 			setError(null);
 			
-			return LeUtils.fetch(url, {retries:3, ...(options ?? {})})
-				.then(async response =>
+			let urlStrings = [];
+			if(IS_OBJECT(url) || IS_ARRAY(url))
+			{
+				LeUtils.each(url, (urlString, key) =>
 				{
-					const data = await hardcodedResponseFunction(response);
-					if(typeof options?.verify === 'function')
+					urlStrings.push({urlString:STRING(urlString), key});
+				});
+			}
+			else
+			{
+				urlStrings.push({urlString:STRING(url), key:undefined});
+			}
+			
+			let fetches = [];
+			LeUtils.each(urlStrings, ({urlString, key}) =>
+			{
+				fetches.push(LeUtils.fetch(urlString, {retries:3, ...(options ?? {})})
+					.then(async response =>
 					{
-						await options.verify(data, response);
+						const data = await hardcodedResponseFunction(response);
+						if(typeof options?.verify === 'function')
+						{
+							await options.verify(data, response);
+						}
+						return {data, key};
+					}));
+			});
+			
+			Promise.all(fetches)
+				.then(values =>
+				{
+					if(IS_OBJECT(url))
+					{
+						let result = {};
+						LeUtils.each(values, ({data, key}) =>
+						{
+							result[key] = data;
+						});
+						return result;
 					}
-					return data;
+					else if(IS_ARRAY(url))
+					{
+						let result = [];
+						LeUtils.each(values, ({data, key}) =>
+						{
+							result[key] = data;
+						});
+						return result;
+					}
+					return values.pop()?.data;
 				})
 				.then(data =>
 				{
@@ -1226,8 +1267,15 @@ export const LeRed = (() =>
 					setLoading(false);
 					setData(null);
 					setError(LeUtils.purgeErrorMessage(error));
-				})
-				.remove;
+				});
+			
+			return () =>
+			{
+				LeUtils.each(fetches, fetch =>
+				{
+					fetch.remove();
+				});
+			};
 		}, [url, options]);
 		
 		if(!LeUtils.equals(paramsRef.current, {url, options}))
