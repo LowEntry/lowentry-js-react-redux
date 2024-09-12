@@ -1302,14 +1302,6 @@ export const LeRed = (() =>
 	};
 	
 	/**
-	 * Allows you to easily obtain external Uint8Array data.
-	 */
-	LeRed.useExternalBytes = (url, options) =>
-	{
-		return LeRed.useExternal(url, options, response => response.bytes());
-	};
-	
-	/**
 	 * Allows you to easily obtain external ArrayBuffer data.
 	 */
 	LeRed.useExternalArrayBuffer = (url, options) =>
