@@ -1174,7 +1174,7 @@ export const LeRed = (() =>
 					setImageUrl(url + (urlHasQ ? '&' : '?') + (options?.queryParam || 'lowentryretryingimgversion') + '=' + (retries.current++));
 				}, (typeof options?.delay === 'function') ? INT_LAX_ANY(options?.delay(retries.current), defaultDelay) : (INT_LAX_ANY(options?.delay, defaultDelay)));
 			}
-		}, [url]);
+		}, [url, options]);
 		
 		const onImageLoadErrorIgnored = LeRed.useCallback(() =>
 		{
@@ -1188,11 +1188,19 @@ export const LeRed = (() =>
 	};
 	
 	/**
-	 * Allows you to easily obtain external data.
+	 * Allows you to easily convert promises to react hooks.
+	 *
+	 * The given callable should return promises. The returned promises can be an array, an object, or even a single promise. The returned data of this hook will match the promises it has operated on.
+	 *
+	 * The given comparingValues can be anything, this is used to detect whether the given promises have changed or not, and so whether new promises have to be generated and executed again.
 	 */
-	LeRed.useExternal = (url, options, hardcodedResponseFunction) =>
+	LeRed.usePromises = (callable, comparingValues) =>
 	{
-		const paramsRef = LeRed.useRef({url, options});
+		const comparingValuesClone = LeUtils.clone(comparingValues);
+		const comparingValuesRef = LeRed.useRef(comparingValuesClone);
+		const latestComparingValuesRef = LeRed.useRef();
+		latestComparingValuesRef.current = comparingValuesClone;
+		
 		const [data, setData] = LeRed.useState(null);
 		const [loading, setLoading] = LeRed.useState(true);
 		const [error, setError] = LeRed.useState(null);
@@ -1203,82 +1211,120 @@ export const LeRed = (() =>
 			setData(null);
 			setError(null);
 			
-			let urlStrings = [];
-			if(IS_OBJECT(url) || IS_ARRAY(url))
+			try
 			{
-				LeUtils.each(url, (urlString, key) =>
+				const promises = callable();
+				
+				let promisesKeyed = [];
+				if(IS_OBJECT(promises) || IS_ARRAY(promises))
 				{
-					urlStrings.push({urlString:STRING(urlString), key});
+					LeUtils.each(promises, (urlString, key) =>
+					{
+						promisesKeyed.push({promise, key});
+					});
+				}
+				else
+				{
+					promisesKeyed.push({promises, key:undefined});
+				}
+				
+				let wrappedPromises = [];
+				LeUtils.each(promisesKeyed, ({promise, key}) =>
+				{
+					wrappedPromises.push(promise
+						.then(async result => ({result, key})));
 				});
-			}
-			else
-			{
-				urlStrings.push({urlString:STRING(url), key:undefined});
-			}
-			
-			let fetches = [];
-			LeUtils.each(urlStrings, ({urlString, key}) =>
-			{
-				fetches.push(LeUtils.fetch(urlString, {retries:3, ...(options ?? {})})
-					.then(async response =>
+				
+				Promise.all(wrappedPromises)
+					.then(resultObjects =>
 					{
-						const data = await hardcodedResponseFunction(response);
-						if(typeof options?.verify === 'function')
+						if(IS_OBJECT(promises))
 						{
-							await options.verify(data, response);
+							let results = {};
+							LeUtils.each(resultObjects, ({result, key}) =>
+							{
+								results[key] = result;
+							});
+							return results;
 						}
-						return {data, key};
-					}));
-			});
-			
-			Promise.all(fetches)
-				.then(values =>
-				{
-					if(IS_OBJECT(url))
-					{
-						let result = {};
-						LeUtils.each(values, ({data, key}) =>
+						else if(IS_ARRAY(promises))
 						{
-							result[key] = data;
-						});
-						return result;
-					}
-					else if(IS_ARRAY(url))
+							let results = [];
+							LeUtils.each(resultObjects, ({result, key}) =>
+							{
+								results[key] = result;
+							});
+							return results;
+						}
+						return resultObjects.pop()?.result;
+					})
+					.then(results =>
 					{
-						let result = [];
-						LeUtils.each(values, ({data, key}) =>
+						if(!LeUtils.equals(latestComparingValuesRef.current, comparingValuesClone))
 						{
-							result[key] = data;
-						});
-						return result;
+							// canceled
+							return;
+						}
+						comparingValuesRef.current = comparingValuesClone;
+						setLoading(false);
+						setData(results);
+						setError(null);
+					})
+					.catch(error =>
+					{
+						if(!LeUtils.equals(latestComparingValuesRef.current, comparingValuesClone))
+						{
+							// canceled
+							return;
+						}
+						comparingValuesRef.current = comparingValuesClone;
+						setLoading(false);
+						setData(null);
+						setError(LeUtils.purgeErrorMessage(error));
+					});
+				
+				return () =>
+				{
+					LeUtils.each(wrappedPromises, promise =>
+					{
+						try
+						{
+							promise?.cancel?.();
+						}
+						catch(e)
+						{
+							console.error('Failed to cancel the given promise:', e);
+						}
+						
+						try
+						{
+							promise?.remove?.();
+						}
+						catch(e)
+						{
+							console.error('Failed to remove the given promise:', e);
+						}
+					});
+				};
+			}
+			catch(error)
+			{
+				LeUtils.setAnimationFrameTimeout(() =>
+				{
+					if(!LeUtils.equals(latestComparingValuesRef.current, comparingValuesClone))
+					{
+						// canceled
+						return;
 					}
-					return values.pop()?.data;
-				})
-				.then(data =>
-				{
-					paramsRef.current = {url, options};
-					setLoading(false);
-					setData(data);
-					setError(null);
-				})
-				.catch(error =>
-				{
-					paramsRef.current = {url, options};
+					comparingValuesRef.current = comparingValuesClone;
 					setLoading(false);
 					setData(null);
 					setError(LeUtils.purgeErrorMessage(error));
 				});
-			
-			return () =>
-			{
-				LeUtils.each(fetches, fetch =>
-				{
-					fetch.remove();
-				});
-			};
-		}, [url, options]);
+			}
+		}, [comparingValuesClone]);
 		
-		if(!LeUtils.equals(paramsRef.current, {url, options}))
+		if(!LeUtils.equals(comparingValuesRef.current, comparingValuesClone))
 		{
 			return [null, true, null];
 		}
@@ -1286,11 +1332,52 @@ export const LeRed = (() =>
 	};
 	
 	/**
+	 * Allows you to easily obtain external data.
+	 */
+	LeRed.useExternal = (url, options, responseFunction) =>
+	{
+		return LeRed.usePromises(() =>
+		{
+			const createFetch = (urlString) => LeUtils.fetch(STRING(urlString), {retries:3, ...(options ?? {})})
+				.then(async response =>
+				{
+					const data = await responseFunction(response);
+					if(typeof options?.verify === 'function')
+					{
+						await options.verify(data, response);
+					}
+					return data;
+				});
+			
+			if(IS_OBJECT(url))
+			{
+				let promises = {};
+				LeUtils.each(url, (urlString, key) =>
+				{
+					promises[key] = createFetch(urlString);
+				});
+				return promises;
+			}
+			if(IS_ARRAY(url))
+			{
+				let promises = [];
+				LeUtils.each(url, urlString =>
+				{
+					promises.push(createFetch(urlString));
+				});
+				return promises;
+			}
+			return createFetch(url);
+		}, [url, options, responseFunction]);
+	};
+	
+	/**
 	 * Allows you to easily obtain external JSON data.
 	 */
 	LeRed.useExternalJson = (url, options) =>
 	{
-		return LeRed.useExternal(url, options, response => response.json());
+		const responseFunction = LeRed.useCallback(response => response.json(), []);
+		return LeRed.useExternal(url, options, responseFunction);
 	};
 	
 	/**
@@ -1298,7 +1385,8 @@ export const LeRed = (() =>
 	 */
 	LeRed.useExternalBlob = (url, options) =>
 	{
-		return LeRed.useExternal(url, options, response => response.blob());
+		const responseFunction = LeRed.useCallback(response => response.blob(), []);
+		return LeRed.useExternal(url, options, responseFunction);
 	};
 	
 	/**
@@ -1306,7 +1394,8 @@ export const LeRed = (() =>
 	 */
 	LeRed.useExternalArrayBuffer = (url, options) =>
 	{
-		return LeRed.useExternal(url, options, response => response.arrayBuffer());
+		const responseFunction = LeRed.useCallback(response => response.arrayBuffer(), []);
+		return LeRed.useExternal(url, options, responseFunction);
 	};
 	
 	/**
@@ -1314,7 +1403,8 @@ export const LeRed = (() =>
 	 */
 	LeRed.useExternalString = (url, options) =>
 	{
-		return LeRed.useExternal(url, options, response => response.text());
+		const responseFunction = LeRed.useCallback(response => response.text(), []);
+		return LeRed.useExternal(url, options, responseFunction);
 	};
 	
 	/**
@@ -1322,7 +1412,8 @@ export const LeRed = (() =>
 	 */
 	LeRed.useExternalFormData = (url, options) =>
 	{
-		return LeRed.useExternal(url, options, response => response.formData());
+		const responseFunction = LeRed.useCallback(response => response.formData(), []);
+		return LeRed.useExternal(url, options, responseFunction);
 	};
 	
 	
