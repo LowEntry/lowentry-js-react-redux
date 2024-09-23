@@ -1218,7 +1218,7 @@ export const LeRed = (() =>
 				let promisesKeyed = [];
 				if(IS_OBJECT(promises) || IS_ARRAY(promises))
 				{
-					LeUtils.each(promises, (urlString, key) =>
+					LeUtils.each(promises, (promise, key) =>
 					{
 						promisesKeyed.push({promise, key});
 					});
