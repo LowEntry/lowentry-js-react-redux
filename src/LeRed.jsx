@@ -1215,8 +1215,11 @@ export const LeRed = (() =>
 			{
 				const promises = callable();
 				
+				const promisesIsObject = IS_OBJECT(promises) && (typeof promises?.then !== 'function');
+				const promisesIsArray = IS_ARRAY(promises);
+				
 				let promisesKeyed = [];
-				if(IS_OBJECT(promises) || IS_ARRAY(promises))
+				if(promisesIsObject || promisesIsArray)
 				{
 					LeUtils.each(promises, (promise, key) =>
 					{
@@ -1238,7 +1241,7 @@ export const LeRed = (() =>
 				Promise.all(wrappedPromises)
 					.then(resultObjects =>
 					{
-						if(IS_OBJECT(promises))
+						if(promisesIsObject)
 						{
 							let results = {};
 							LeUtils.each(resultObjects, ({result, key}) =>
@@ -1247,7 +1250,7 @@ export const LeRed = (() =>
 							});
 							return results;
 						}
-						else if(IS_ARRAY(promises))
+						else if(promisesIsArray)
 						{
 							let results = [];
 							LeUtils.each(resultObjects, ({result, key}) =>
