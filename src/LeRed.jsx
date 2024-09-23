@@ -1225,7 +1225,7 @@ export const LeRed = (() =>
 				}
 				else
 				{
-					promisesKeyed.push({promises, key:undefined});
+					promisesKeyed.push({promise:promises, key:undefined});
 				}
 				
 				let wrappedPromises = [];
