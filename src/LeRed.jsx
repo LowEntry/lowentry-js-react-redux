@@ -981,7 +981,7 @@ export const LeRed = (() =>
 			const eventName = 'lowentrytriggerable_' + event;
 			window.addEventListener(eventName, callback);
 			return () => window.removeEventListener(eventName, callback);
-		}, []);
+		}, [event]);
 		
 		return value;
 	};
