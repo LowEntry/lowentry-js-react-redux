@@ -243,6 +243,7 @@ export const LeRed = (() =>
 				});
 			});
 			
+			/** @type {object|*} */
 			let reducers = {};
 			LeUtils.each(reducerArrays, (reducerArray, reducerName) =>
 			{
@@ -295,6 +296,7 @@ export const LeRed = (() =>
 		}
 		storeData.middleware = (getDefaultMiddleware) => getDefaultMiddleware().concat(...middleware);
 		
+		/** @type {RTK.EnhancedStore|*} */
 		let store = RTK.configureStore(storeData);
 		store.__lowentry_store__ = true;
 		store.state = () => store.getState().reducer;
@@ -435,9 +437,11 @@ export const LeRed = (() =>
 						{
 							const sagaListener = function* ()
 							{
-								yield ReduxSagaEffects.takeEvery(reducerAction, function* (action)
+								yield ReduxSagaEffects.takeEvery(reducerAction, function* (/** @type {RTK.Action|*} */ action)
 								{
+									/** @type {((value:*)=>void)|null|*} */
 									let promiseResolve = null;
+									/** @type {((reason:*)=>void)|null|*} */
 									let promiseReject = null;
 									try
 									{
