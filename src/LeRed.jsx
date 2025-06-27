@@ -1429,7 +1429,7 @@ export const LeRed = (() =>
 		if(ISSET(store))
 		{
 			store = LeRed.configureStore(store);
-			return (<ReactRedux.Provider store={store} {...other}>{children}</ReactRedux.Provider>);
+			return (<ReactRedux.Provider store={store} children={children} {...other}/>);
 		}
 		return children;
 	});
