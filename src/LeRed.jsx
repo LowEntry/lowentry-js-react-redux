@@ -769,16 +769,10 @@ export const LeRed = (() =>
 				callable();
 			};
 			
-			if(typeof window !== 'undefined')
-			{
-				window.addEventListener('beforeunload', run, {capture:true});
-			}
+			globalThis?.addEventListener?.('beforeunload', run, {capture:true});
 			return () =>
 			{
-				if(typeof window !== 'undefined')
-				{
-					window.removeEventListener('beforeunload', run, {capture:true});
-				}
+				globalThis?.removeEventListener?.('beforeunload', run, {capture:true});
 				run();
 			};
 		}, [comparingValues, equalsComparator]);
@@ -789,28 +783,25 @@ export const LeRed = (() =>
 		const events = ['pagehide', 'freeze', 'blur', 'visibilitychange'];
 		return LeRed.useEffect(() =>
 		{
-			if((typeof window === 'undefined'))
-			{
-				return;
-			}
-			
 			const run = () =>
 			{
-				if(typeof document === 'undefined')
-				{
-					return;
-				}
-				if((document.visibilityState !== 'hidden') && document.hasFocus())
+				if((globalThis?.document?.visibilityState !== 'hidden') && globalThis?.document?.hasFocus?.())
 				{
 					return;
 				}
 				callable();
 			};
 			
-			events.forEach(type => window.addEventListener(type, run, {capture:true}));
+			events.forEach(type =>
+			{
+				globalThis?.addEventListener?.(type, run, {capture:true});
+			});
 			return () =>
 			{
-				events.forEach(type => window.removeEventListener(type, run, {capture:true}));
+				events.forEach(type =>
+				{
+					globalThis?.removeEventListener?.(type, run, {capture:true});
+				});
 			};
 		}, [comparingValues, equalsComparator]);
 	};
@@ -859,7 +850,7 @@ export const LeRed = (() =>
 		{
 			if(!hasFont)
 			{
-				if((typeof window === 'undefined') || !ISSET(document?.fonts?.check))
+				if(!globalThis?.document?.fonts?.check)
 				{
 					setHasFont(true);
 					return;
@@ -869,7 +860,7 @@ export const LeRed = (() =>
 				{
 					try
 					{
-						if(document.fonts.check(font))
+						if(globalThis.document.fonts.check(font))
 						{
 							clearInterval(handler);
 							setHasFont(true);
@@ -898,12 +889,12 @@ export const LeRed = (() =>
 	{
 		return LeRed.useEffect(() =>
 		{
-			if((typeof window === 'undefined') || !document)
+			if(!globalThis?.document?.createElement || !globalThis?.document?.head?.appendChild || !globalThis?.document?.head?.removeChild)
 			{
 				return;
 			}
 			
-			const script = document.createElement('script');
+			const script = globalThis.document.createElement('script');
 			script.type = 'text/javascript';
 			script.src = url;
 			
@@ -912,8 +903,8 @@ export const LeRed = (() =>
 				script.setAttribute(key, value);
 			});
 			
-			document.head.appendChild(script);
-			return () => document.head.removeChild(script);
+			globalThis.document.head.appendChild(script);
+			return () => globalThis.document.head.removeChild(script);
 		}, [url, props]);
 	};
 	
@@ -972,7 +963,7 @@ export const LeRed = (() =>
 		
 		LeRed.useEffect(() =>
 		{
-			if(typeof window === 'undefined')
+			if(!globalThis?.addEventListener || !globalThis?.removeEventListener)
 			{
 				return;
 			}
@@ -983,8 +974,8 @@ export const LeRed = (() =>
 			};
 			
 			const eventName = 'lowentrytriggerable_' + event;
-			window.addEventListener(eventName, callback);
-			return () => window.removeEventListener(eventName, callback);
+			globalThis.addEventListener(eventName, callback);
+			return () => globalThis.removeEventListener(eventName, callback);
 		}, [event]);
 		
 		return value;
@@ -992,12 +983,12 @@ export const LeRed = (() =>
 	
 	LeRed.trigger = (event, value) =>
 	{
-		if(typeof window === 'undefined')
+		if(!globalThis?.dispatchEvent || !globalThis?.CustomEvent)
 		{
 			return;
 		}
 		const eventName = 'lowentrytriggerable_' + event;
-		window.dispatchEvent(new CustomEvent(eventName, {detail:value}));
+		globalThis.dispatchEvent(new globalThis.CustomEvent(eventName, {detail:value}));
 	};
 	
 	/**
@@ -1048,13 +1039,10 @@ export const LeRed = (() =>
 	{
 		let historyStateListeners = [];
 		
-		if(typeof window !== 'undefined')
+		globalThis?.addEventListener?.('popstate', () =>
 		{
-			window.addEventListener('popstate', () =>
-			{
-				historyStateListeners.pop()?.callback();
-			});
-		}
+			historyStateListeners.pop()?.callback();
+		});
 		
 		const addListener = (callback) =>
 		{
@@ -1438,7 +1426,7 @@ export const LeRed = (() =>
 	{
 		if(typeof window !== 'undefined')
 		{
-			const promise = load(); // start loading already, before it's being rendered in React
+			const promise = load(); // in the browser, start loading already, before it's being rendered in React
 			return () => promise;
 		}
 		return load;
