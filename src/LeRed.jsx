@@ -7,9 +7,10 @@ import * as ReduxSagaEffects from 'redux-saga/effects';
 import FastDeepEqualReact from 'fast-deep-equal/react';
 import {LeUtils, ISSET, ARRAY, STRING, INT_LAX_ANY, IS_OBJECT, IS_ARRAY} from '@lowentry/utils';
 
+
 export const LeRed = (() =>
 {
-	/** @type {{[key:string]:*}} */
+	/** @type {object} */
 	const LeRed = {};
 	
 	
