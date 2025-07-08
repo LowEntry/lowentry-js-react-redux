@@ -9,6 +9,7 @@ import {LeUtils, ISSET, ARRAY, STRING, INT_LAX_ANY, IS_OBJECT, IS_ARRAY} from '@
 
 export const LeRed = (() =>
 {
+	/** @type {{[key:string]:*}} */
 	const LeRed = {};
 	
 	
