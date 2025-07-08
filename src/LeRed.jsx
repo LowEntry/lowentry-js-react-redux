@@ -1137,6 +1137,48 @@ export const LeRed = (() =>
 	};
 	
 	/**
+	 * Allows you to listen to the hash of the URL (window.location.hash).
+	 *
+	 * The hash can be useful than the query, as changing the hash will not cause the page to reload. Plus there's a good way to listen to hash changes, using the `hashchange` event, which is lacking for the query.
+	 *
+	 * Example:
+	 *
+	 * ```js
+	 * const [hashParams, hashString] = LeRed.useHashParams();
+	 * ```
+	 */
+	LeRed.useHashParams = (() =>
+	{
+		const getHashString = () => (globalThis?.location?.hash?.trim()?.replace(/^#/, '') ?? '');
+		const parseHashParams = (hashString) => (new URLSearchParams(hashString));
+		
+		/**
+		 * @returns {[hashParams:URLSearchParams, hashString:string]}
+		 */
+		return () =>
+		{
+			const [hashString, setHashString] = LeRed.useState(getHashString);
+			const hashParams = LeRed.useMemo(() => parseHashParams(hashString), [hashString]);
+			
+			LeRed.useEffect(() =>
+			{
+				const onUrlChanged = () =>
+				{
+					setHashString(getHashString());
+				};
+				
+				globalThis?.addEventListener?.('hashchange', onUrlChanged);
+				return () =>
+				{
+					globalThis?.removeEventListener?.('hashchange', onUrlChanged);
+				};
+			}, []);
+			
+			return [hashParams, hashString];
+		};
+	})();
+	
+	/**
 	 * Allows you to easily create an <pre><img></pre> url and onError handler that will automatically retry loading the image if it fails.
 	 */
 	LeRed.useRetryingImageUrl = (url, options) =>
