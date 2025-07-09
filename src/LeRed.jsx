@@ -10,7 +10,7 @@ import {LeUtils, ISSET, ARRAY, STRING, INT_LAX_ANY, IS_OBJECT, IS_ARRAY} from '@
 
 export const LeRed = (() =>
 {
-	/** @type {object} */
+	/** @type {Object} */
 	const LeRed = {};
 	
 	
@@ -245,7 +245,7 @@ export const LeRed = (() =>
 				});
 			});
 			
-			/** @type {object|*} */
+			/** @type {Object|*} */
 			let reducers = {};
 			LeUtils.each(reducerArrays, (reducerArray, reducerName) =>
 			{
@@ -885,7 +885,7 @@ export const LeRed = (() =>
 	 * Only for development and testing purposes.
 	 *
 	 * @param {string} url The URL of the js file to include.
-	 * @param {object} props Additional props of the <script> tag.
+	 * @param {Object} props Additional props of the <script> tag.
 	 */
 	LeRed.useScript = (url, props = {}) =>
 	{
