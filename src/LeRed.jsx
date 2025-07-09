@@ -1146,13 +1146,13 @@ export const LeRed = (() =>
 	 * Example:
 	 *
 	 * ```js
-	 * const [hashParams, hashString] = LeRed.useHashParams();
+	 * const [hashParams, hashString] = LeRed.useUrlHashParams();
 	 * ```
 	 */
-	LeRed.useHashParams = (() =>
+	LeRed.useUrlHashParams = (() =>
 	{
 		const getHashString = () => (globalThis?.location?.hash?.trim()?.replace(/^#/, '') ?? '');
-		const parseHashParams = (hashString) => (new URLSearchParams(hashString));
+		const parseHashParams = (hashString) => Object.fromEntries(new URLSearchParams(hashString));
 		
 		/**
 		 * @returns {[hashParams:URLSearchParams, hashString:string]}
