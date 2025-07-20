@@ -10,7 +10,7 @@ This plugin adds utility functions to make it easier to use React and Redux in y
 For example, some of the things it does is:
 
 - it combines React, Redux, ReactRedux, RTK, etc, functions into a single object, so you won't have to figure out where it is located anymore, you simply call LeRed.functionName.
-- it provides improvements to the regular Redux functions, such as `createSlice` (allowing you to call those actions directly), and `useEffect` (solving the comparison of the given dependencies' values using `fast-deep-equal/react`, rather than doing a shallow compare).
+- it provides improvements to the regular Redux functions, such as `createSlice` (allowing you to call those actions directly), and `useEffect` (solving the comparison of the given dependencies' values using a deep equals compare, rather than doing a shallow compare).
 - it provides lots of helper functions, such as `useEffectInterval` (which is a combination of `useEffect` and `setInterval`).
 - it automatically adds support for Redux-Saga to your Redux code, allowing you to call other Redux actions from within a Redux action (as well as the host of other things that Redux-Saga can do, such as obtain the data from selectors, run delays, etc).
 

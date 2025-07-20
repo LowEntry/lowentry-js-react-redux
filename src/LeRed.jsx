@@ -4,7 +4,6 @@ import * as ReactDOM from 'react-dom';
 import * as ReactRedux from 'react-redux';
 import * as ReduxSaga from 'redux-saga';
 import * as ReduxSagaEffects from 'redux-saga/effects';
-import FastDeepEqualReact from 'fast-deep-equal/react';
 import {LeUtils, ISSET, ARRAY, STRING, INT_LAX_ANY, IS_OBJECT, IS_ARRAY} from '@lowentry/utils';
 
 
@@ -150,11 +149,11 @@ export const LeRed = (() =>
 			{
 				console.error(errorMessage);
 				console.error(equalsComparator);
-				return FastDeepEqualReact;
+				return LeUtils.equals;
 			}
 			return equalsComparator;
 		}
-		return FastDeepEqualReact;
+		return LeUtils.equals;
 	};
 	
 	const useCompareMemoize = (value, equalsComparator) =>
