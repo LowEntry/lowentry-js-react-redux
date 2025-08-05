@@ -680,6 +680,16 @@ export const LeRed = (() =>
 		return ReactRedux.useSelector(selector, equalsComparator);
 	};
 	
+	LeRed.useLayoutEffect = (callable, comparingValues, equalsComparator) =>
+	{
+		equalsComparator = fixEqualsComparator(equalsComparator, 'LeRed.useLayoutEffect() was given an invalid comparator:');
+		comparingValues = ARRAY(comparingValues);
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		comparingValues = comparingValues.map(value => useCompareMemoize(value, equalsComparator));
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		return React.useLayoutEffect(callable, comparingValues);
+	};
+	
 	LeRed.useEffect = (callable, comparingValues, equalsComparator) =>
 	{
 		equalsComparator = fixEqualsComparator(equalsComparator, 'LeRed.useEffect() was given an invalid comparator:');
